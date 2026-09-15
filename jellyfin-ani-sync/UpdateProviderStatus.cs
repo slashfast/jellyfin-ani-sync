@@ -705,10 +705,14 @@ namespace jellyfin_ani_sync {
                                         ids: _apiIds,
                                         isShow: _animeType == typeof(Episode));
                                 } else {
-                                    _logger.LogInformation($"({ApiName}) Setting new {(_animeType == typeof(Episode) ? "series" : "movie")} ({GetAnimeTitle(detectedAnime)}) as watching.");
+                                    Status firstEpisodeStatus = detectedAnime.MyListStatus.IsRewatching &&
+                                        (ApiName == ApiName.AniList || ApiName == ApiName.Shikimori)
+                                            ? Status.Rewatching
+                                            : Status.Watching;
+                                    _logger.LogInformation($"({ApiName}) Setting new {(_animeType == typeof(Episode) ? "series" : "movie")} ({GetAnimeTitle(detectedAnime)}) as {firstEpisodeStatus}.");
                                     response = await ApiCallHelpers.UpdateAnime(detectedAnime.Id,
                                         episodeNumber.Value,
-                                        Status.Watching,
+                                        firstEpisodeStatus,
                                         startDate: DateTime.Now,
                                         alternativeId: detectedAnime.AlternativeId,
                                         ids: _apiIds,
