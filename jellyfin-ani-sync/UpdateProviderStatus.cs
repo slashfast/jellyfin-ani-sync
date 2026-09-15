@@ -489,8 +489,10 @@ namespace jellyfin_ani_sync {
 
         private async Task CheckUserListAnimeStatusBase(Anime detectedAnime, int episodeNumber, bool overrideCheckRewatch, string? alternativeId = null) {
             if (detectedAnime == null) return;
-            if (detectedAnime.MyListStatus != null && detectedAnime.MyListStatus.Status == Status.Watching && ApiName != ApiName.Annict) {
-                _logger.LogInformation($"({ApiName}) {(_animeType == typeof(Episode) ? "Series" : "Movie")} ({GetAnimeTitle(detectedAnime)}) found on watching list");
+            if (detectedAnime.MyListStatus != null &&
+                (detectedAnime.MyListStatus.Status == Status.Watching || detectedAnime.MyListStatus.Status == Status.Rewatching) &&
+                ApiName != ApiName.Annict) {
+                _logger.LogInformation($"({ApiName}) {(_animeType == typeof(Episode) ? "Series" : "Movie")} ({GetAnimeTitle(detectedAnime)}) found on {detectedAnime.MyListStatus.Status} list");
                 await UpdateAnimeStatus(detectedAnime, episodeNumber);
                 return;
             }
@@ -698,7 +700,7 @@ namespace jellyfin_ani_sync {
                                     // don't set start date after first episode
                                     response = await ApiCallHelpers.UpdateAnime(detectedAnime.Id,
                                         episodeNumber.Value,
-                                        detectedAnime.MyListStatus.IsRewatching && ApiName == ApiName.AniList ? Status.Rewatching : Status.Watching,
+                                        detectedAnime.MyListStatus.IsRewatching && (ApiName == ApiName.AniList || ApiName == ApiName.Shikimori) ? Status.Rewatching : Status.Watching,
                                         alternativeId: detectedAnime.AlternativeId,
                                         ids: _apiIds,
                                         isShow: _animeType == typeof(Episode));
