@@ -8,12 +8,12 @@
     "overview": "Synchronize anime watch status",
     "versions": [
       {
-        "checksum": "5d80bc7d1ef1b42f73081c46ae5e222d",
-        "changelog": "Sync Shikimori rewatch progress and preserve the rewatching status",
+        "checksum": "b77423a5deec0bf51c8253c056b7b068",
+        "changelog": "Sync Shikimori rewatch progress, including the first episode, and preserve the rewatching status",
         "targetAbi": "12.0.0.0",
-        "sourceUrl": "https://github.com/slashfast/jellyfin-ani-sync/releases/download/v4.6.1/12.0.0.-.ani-sync_4.6.1.0.zip",
-        "timestamp": "2026-09-15T18:19:12Z",
-        "version": "4.6.1.0"
+        "sourceUrl": "https://github.com/slashfast/jellyfin-ani-sync/releases/download/v4.6.2/12.0.0.-.ani-sync_4.6.2.0.zip",
+        "timestamp": "2026-09-15T18:25:35Z",
+        "version": "4.6.2.0"
       },
       {
         "checksum": "0d398377b33c27840c021779497c72dc",
