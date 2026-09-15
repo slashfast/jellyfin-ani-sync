@@ -8,6 +8,14 @@
     "overview": "Synchronize anime watch status",
     "versions": [
       {
+        "checksum": "c195d516b9d601760e2b44e6bb6b9248",
+        "changelog": "Use shikimori.io as the default API domain so authenticated status requests are not lost on redirect",
+        "targetAbi": "10.11.11.0",
+        "sourceUrl": "https://github.com/slashfast/jellyfin-ani-sync/releases/download/v4.5.3/10.11.11.-.ani-sync_4.5.3.0.zip",
+        "timestamp": "2026-09-15T20:35:00Z",
+        "version": "4.5.3.0"
+      },
+      {
         "checksum": "6c0440f5bf5e1c203eae049a5009b942",
         "changelog": "Set the plugin assembly version and sync Shikimori rewatch progress, including the first episode",
         "targetAbi": "10.11.11.0",
