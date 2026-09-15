@@ -202,6 +202,7 @@ public class GeneralFlowTests {
     /// </summary>
     [TestCase(ApiName.Mal)]
     [TestCase(ApiName.AniList)]
+    [TestCase(ApiName.Shikimori)]
     public async Task UpdateAnimeReWatchingInProgress(ApiName apiName) {
         int episodesWatched = 10;
         Anime detectedAnime = new Anime {
@@ -223,7 +224,7 @@ public class GeneralFlowTests {
         await _updateProviderStatus.UpdateAnimeStatus(detectedAnime, episodesWatched, setRewatching: true);
 
         _mockApiCallHelpers.Verify(s => s.UpdateAnime(It.IsAny<int>(), It.IsAny<int>(),
-            apiName == ApiName.Mal ? Status.Completed : Status.Watching, It.IsAny<bool?>(), It.IsAny<int?>(),
+            apiName == ApiName.Mal ? Status.Completed : apiName == ApiName.Shikimori ? Status.Rewatching : Status.Watching, It.IsAny<bool?>(), It.IsAny<int?>(),
             It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string>(),
             It.IsAny<AnimeOfflineDatabaseHelpers.OfflineDatabaseResponse>(), It.IsAny<bool?>()), Times.Once);
     }
