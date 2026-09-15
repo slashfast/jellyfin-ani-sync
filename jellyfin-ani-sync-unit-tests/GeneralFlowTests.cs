@@ -258,6 +258,32 @@ public class GeneralFlowTests {
             It.IsAny<AnimeOfflineDatabaseHelpers.OfflineDatabaseResponse>(), It.IsAny<bool?>()), Times.Once);
     }
 
+    [Test]
+    public async Task UpdateAnimeShikimoriReWatchingFirstEpisode() {
+        Anime detectedAnime = new Anime {
+            Id = 1,
+            Title = "title",
+            NumEpisodes = 2,
+            MyListStatus = new MyListStatus {
+                NumEpisodesWatched = 0,
+                IsRewatching = true
+            }
+        };
+
+        _mockApiCallHelpers.Setup(s => s.UpdateAnime(1, 1,
+            Status.Rewatching, It.IsAny<bool?>(), It.IsAny<int?>(),
+            It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string>(),
+            It.IsAny<AnimeOfflineDatabaseHelpers.OfflineDatabaseResponse>(), It.IsAny<bool?>())).Returns(Task.FromResult(new UpdateAnimeStatusResponse()));
+
+        _updateProviderStatus.ApiName = ApiName.Shikimori;
+        await _updateProviderStatus.UpdateAnimeStatus(detectedAnime, 1);
+
+        _mockApiCallHelpers.Verify(s => s.UpdateAnime(1, 1,
+            Status.Rewatching, It.IsAny<bool?>(), It.IsAny<int?>(),
+            It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string>(),
+            It.IsAny<AnimeOfflineDatabaseHelpers.OfflineDatabaseResponse>(), It.IsAny<bool?>()), Times.Once);
+    }
+
     /// <summary>
     /// Update new rewatch.
     /// </summary>
