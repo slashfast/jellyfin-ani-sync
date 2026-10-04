@@ -1,0 +1,96 @@
+name: Build plugin
+
+on:
+  push:
+    branches: ['master']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag, branch or commit SHA to build'
+        required: true
+        default: 'master'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Resolve version
+        id: version
+        env:
+          REF: ${{ inputs.ref || github.sha }}
+        run: |
+          # tag selected: name = tag, version = semver parsed from the tag
+          #   v4.6 -> 4.6.0, v4.6.1 -> 4.6.1, v4.6.0-beta.1 -> 4.6.0-beta.1, v4.5b -> 4.5.0-b
+          # otherwise: name = short SHA, version stays as in the csproj
+          if git show-ref --verify --quiet "refs/tags/${REF}"; then
+            name="${REF}"
+            re='^v?([0-9]+)\.([0-9]+)(\.([0-9]+))?-?([0-9A-Za-z.-]*)$'
+            if [[ "${REF}" =~ $re ]]; then
+              core="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[4]:-0}"
+              pre="${BASH_REMATCH[5]}"
+              semver="${core}${pre:+-${pre}}"
+              asm="${core}.0"
+              echo "msbuild_args=-p:Version=${semver} -p:AssemblyVersion=${asm} -p:FileVersion=${asm}" >> "$GITHUB_OUTPUT"
+              echo "plugin_version=${asm}" >> "$GITHUB_OUTPUT"
+            else
+              echo "::error::Tag '${REF}' is not a version like v1.2[.3][-suffix]"
+              exit 1
+            fi
+          else
+            name="$(git rev-parse --short HEAD)"
+            echo "msbuild_args=" >> "$GITHUB_OUTPUT"
+            asm="$(grep -oP '(?<=<AssemblyVersion>)[^<]+' jellyfin-ani-sync/jellyfin-ani-sync.csproj || true)"
+            echo "plugin_version=${asm:-0.0.0.0}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "name=${name//\//-}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish
+        run: dotnet publish --configuration Release --property:PublishDir=bin ${{ steps.version.outputs.msbuild_args }}
+
+      - name: Package plugin
+        env:
+          PLUGIN_VERSION: ${{ steps.version.outputs.plugin_version }}
+          PLUGIN_NAME: Ani-Sync_${{ steps.version.outputs.name }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          import yaml
+          build = yaml.safe_load(Path('jellyfin-ani-sync/build.yaml').read_text())
+          meta = {
+              'category': build['category'],
+              'changelog': f"Build {os.environ['PLUGIN_NAME']}",
+              'description': build['description'].strip(),
+              'guid': build['guid'],
+              'name': build['name'],
+              'overview': build['overview'],
+              'owner': build['owner'],
+              'targetAbi': build['targetAbi'],
+              'version': os.environ['PLUGIN_VERSION'],
+              'status': 'Active',
+              'autoUpdate': False,
+          }
+          Path('jellyfin-ani-sync/bin/meta.json').write_text(json.dumps(meta, indent=2) + '\n')
+          PY
+          cd jellyfin-ani-sync/bin
+          zip -j "../../${PLUGIN_NAME}.zip" jellyfin-ani-sync.dll meta.json
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v7
+        with:
+          name: Ani-Sync_${{ steps.version.outputs.name }}
+          path: Ani-Sync_${{ steps.version.outputs.name }}.zip
+          if-no-files-found: error
